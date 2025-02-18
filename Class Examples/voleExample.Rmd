@@ -1,0 +1,62 @@
+---
+title: "voleExample"
+author: "ChanceYan"
+date: "2025-02-18"
+output: html_document
+---
+
+```{r, include = TRUE}
+setwd("/Users/chanceyan/Documents/R/ECO636/ECO636Assignments")
+vole <- read.table(file = "voleWt.txt", h=T)
+head(vole)
+xtabs(~Network+Sex, data = vole)
+
+#after plotting weight against sex and network, you don't see a lot of differences between the different variables
+```
+
+Question: Are there significant differences in weight and sex or network?
+
+overall formula: B~o~+ B~1(g)~Network~1i(g)~ + B~2(g)~Sex~2i(g)~ + e~i~
+
+Null hypothesis for network: B~1(2)~ = B~1(3)~ = B~1(4)~ = 0 Null Hypothesis Sex: B~2(male)~ = 0
+
+Assumptions -Normality -Constant Variance -Observations are independent -Predictors measured without error
+
+```{r, include = TRUE}
+mSexPop <- lm(Weight ~ Network + Sex, data = vole)
+coef(mSexPop)
+tapply(vole$Weight, list(vole$Network, vole$Sex), mean, na.rm = T)
+```
+
+How do you compare coefficients to means here?
+
+You can compare the two in the same way as before. For instance, "Sexmale" vs intercept gives you the difference of average between males and sex (ignoring network). Reverse is true for network. Intercept is the female CRO pop mean. To move between other values you need to add other coefficients. Estimates are not capturing differences as closely as we have seen previously
+
+```{r, include = TRUe}
+par(mfrow = c(2,2))
+plot(mSexPop)
+summary(mSexPop)
+```
+
+We meet our assumptions! Because we don't see a large difference between networks, maybe the only thing explaining differences is just sex. Perhaps we should just use sex in our model.
+
+Full model: Network + Sex Network only model Sex only model Null model
+
+```{r, include = TRUE}
+modList <- list()
+modList[["mSexPop"]] <- lm(Weight ~ Network + Sex, data = vole)
+modList[["mSex"]] <- lm(Weight ~ Sex, data = vole)
+modList[["mPop"]] <- lm(Weight ~ Network, data = vole)
+modList[["m0"]] <- lm(Weight ~ 1, data = vole)
+```
+
+AIC criteria: difference in delta unit 0-2 units, little difference between models 3-10 units, some support for the model with the lowest AIC 10 or \>10 models very likely the modelw ith the lower AIC is better
+
+```{r, include = TRUe}
+library(AICcmodavg)
+aictab(modList)
+```
+
+K = number of parameters m0 -\> 2: B~o~ or mean of response variable, and e~i~ or residuals AIC value -\> lower is better, top two values are very similar Delta AIC -\> comparison between top model
+
+Top two models are very similar in ability to explain differences in weights. You as the analyst can decide what to report.

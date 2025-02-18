@@ -1,0 +1,142 @@
+---
+title: "Lab2ECO636"
+author: "ChanceYan"
+date: "2025-02-05"
+output: word_document
+---
+
+FIGURE 2
+1. Can you recreate the figure?
+
+```{r, echo = FALSE}
+setwd("~/Documents/R/ECO636")
+
+Sparrows <- read.table(file = "Sparrows.txt", header = TRUE)
+par(mfrow= c (1,2), mar = c(5,4,2,1))
+boxplot(Sparrows$wingcrd, ylab = "Wing length (mm)")
+dotchart(Sparrows$wingcrd, xlab = "Wing length (mm)", ylab = "Order of the data")
+```
+
+2. What issues are you trying to diagnose?
+
+By using a boxplot and dotchart, you're trying to identify outliers. The boxplot and dotplots are good 
+methods to use when trying to see what outliers you have of your data
+
+3. What can we learn from this visualization?
+
+We learn from the boxplot that we may have a few outliers on the higher end of the range; however,
+looking at the dot plot we see that only one value really sticks out. If we looked at just the boxplot
+we might assume 6 outliers, but looking at the dot plot we see there's only one "obvious" outlier. 
+This might suggest that we go back and check on that one plot point to make sure there was no obvious error ultimately, it would be up to the anaylst to include or exclude that data point from the study.
+
+FIGURE 4
+1 Can you recreate the figure?
+
+```{r, echo = FALSE}
+library(lattice)
+Godwits <- read.table(file="Godwits.txt", header=TRUE)
+Godwits$fSEX <- factor(Godwits$SEX, levels = c(1, 2),
+                       labels = c("Female", "Male"))
+Godwits$fPERIOD <- factor(Godwits$PERIOD, levels = c(0, 1, 2),
+                          labels = c("Summer", "Pre-migration", "Winter"))
+bwplot(mgconsumed ~ fPERIOD | fSEX, data = Godwits,cex = .5,
+       layout = c(2, 1), xlab = "Migration period", ylab = "Intake rate")
+```
+
+2. What issues are you trying to diagnose?
+
+The issue you are trying to diagnose is do we have homogeneity of variance
+
+3. What can we learn from this visualization?
+
+In order for us to use ANOVA, we need to assume that the variance of our observations are similar
+They need to be similar over the covariates (seasons and sex in this case), so by making this
+plot we can examine if the observations vary greatly or not. In this case, we see that there is very little variance between sex and the seasons. Therefore we may continue on the next step.
+
+FIGURE 5
+1 Can you recreate the figure?
+
+```{r, echo = FALSE}
+sparrows.summer <- subset(Sparrows, Month == 6 | Month == 7 | Month == 8)
+par(oma=c(0,0,0,0),mar=c(4,4,1,1))
+hist(sparrows.summer$wt,breaks = 30, xlab = "Weight (g)", main = "",
+     ylab = "Frequency")
+
+histogram(~ wt | Month, type = "count",
+          xlab = "Weight (g)", ylab = "Frequency",
+          nint=30,layout=c(1,3), strip.left = strip.custom(horizontal = FALSE),
+          strip=FALSE, col.line = "black", col = "white", data = sparrows.summer)
+```
+
+2. What issues are you trying to diagnose?
+
+Whether the data is normally distributed or not
+
+3. What can we learn from this visualization?
+
+We can learn that the two graphs that data may seemed skewed in some cases when grouped all together and not sorted. If we had just looked at the summer months, we might assume the data is skewed, but after separating the data into their own separated month, we see that the data is actually normal.
+
+FIGURE 7
+1 Can you recreate the figure?
+
+```{r, echo = FALSE}
+RiceField <- read.table(file="BirdData.txt", header = TRUE)
+par(mar = c(4, 4, 3, 2))
+plot(table(round(RiceField$AREA * RiceField$AQBIRDS)),
+     type = "h",
+     xlim = c(0, 100),
+     xlab = "Observed values", ylab = "Frequency")
+```
+
+2. What issues are you trying to diagnose?
+
+We are trying to determine if our dataset has a lot of zeros.
+
+3. What can we learn from this visualization?
+
+We can learn that our dataset has a lot of zeros. Therefore we must we should not apply an 
+ordinary Pois- son or negative binomial GLM as these would produce biased parameter estimates and 
+standard errors. Instead one should consider zero inflated GLMs 
+
+FIGURE 10
+1 Can you recreate the figure?
+
+```{r, echo = FALSE}
+Sparrows <- read.table(file="Sparrows.txt", header=TRUE)
+MyNames <- c("wing chord", "tarsus length", "head length",
+             "culmen length", "nalospi to bill tip", "weightt")
+pairs(Sparrows[,c(1, 3, 4, 5, 6, 7)], lower.panel = panel.smooth,
+      cex.labels=1.3, labels=MyNames)
+```
+
+2. What issues are you trying to diagnose?
+
+Relationships between Y and X variables
+
+3. What can we learn from this visualization?
+
+Typically we use this when we have no general clue about what our dataset will tell us. Doing this
+plot will give us a general overview of what we should begin to think about as we move along with out dataset you can look at the current graph and see there are some relationships between lengths (as expected) as head length increases so does weight generally (bigger head more weight) and etc
+
+FIGURE 12
+1 Can you recreate the figure?
+
+```{r, echo = FALSE}
+Waders <- read.table(file = "wader.txt", header = TRUE)
+Time <- seq(1,25)
+par(mfrow = c(2, 2), mar = c(5, 4, 3, 2))
+plot(Time, Waders$C.fuscicolis, type = "l", xlab = "Time (2 weeks)",
+     ylab = "C. fuscicollis abundance")
+acf(Waders$C.fuscicolis, main = "C. fuscicollis ACF")
+plot(Time, Waders$L.dominicanus, type = "l", xlab = "Time (2 weeks)",
+     ylab = "L. dominicanus abundance")
+acf(Waders$L.dominicanus, main = "L. dominicanus ACF")
+```
+
+2. What issues are you trying to diagnose?
+
+We are trying to determine if observations of the response variable independent or not
+
+3. What can we learn from this visualization?
+
+By creating the two graphs on the left, we can see if there are any obvious patterns of abundance due to time We can see on the top there is, but on the bottom there is not (this is due to migration). Therefore we know the observations of the response variable are not independent for the top, but are for the bottom. Moving to the right two graphs, this is another way to find variable dependence. Any value where the ACF goes above the significance threshold, we can assume that the abundance/value there is due to the time period (so abundances of the bird are due to the time period)
