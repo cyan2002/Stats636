@@ -1,0 +1,10 @@
+---
+title: "Lab 4 Assignment"
+author: "ChanceYan"
+date: "2025-02-18"
+output: html_document
+---
+
+```{r, include = TRUE}
+
+```
