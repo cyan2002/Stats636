@@ -5,6 +5,109 @@ date: "2025-02-18"
 output: html_document
 ---
 
+Load data into R
 ```{r, include = TRUE}
-
+canopy <- read.csv(file = "main_analysis_table_x-site_redlining_canopy.csv")
+head(canopy)
 ```
+
+
+Show what our data looks like:
+```{r, include = TRUE}
+table(canopy$city,canopy$holc_grade)
+xtabs(~city+holc_grade, data=canopy) # another option
+```
+
+
+Combine Boston and NYC into one:
+```{r, include = TRUE}
+nyc <- c("Bronx", "Brooklyn", "Manhattan", "Queens", "Staten Island")
+bos <- c("Boston", "Cambridge", "Chelsea")
+canopy$city <- ifelse(canopy$city %in% nyc, "NYC",
+ifelse(canopy$city %in% bos, "Boston", canopy$city))
+remove(nyc, bos)
+```
+
+
+
+Plotting our data to see what it looks like inititally:
+```{r, include = TRUE}
+library(ggplot2)
+## set colors for plotting
+holc_col <- c('#92BC6B', '#92C7C9', '#E7DC6B', '#E47D67')
+holc_lab <- c('A - "Best"',
+'B - "Still Desirable"',
+'C - "Definitely Declining"',
+'D - "Hazardous"')
+
+#Histogram
+hist(canopy$Can_P, breaks=seq(0,100,5), cex.axis=0.8,
+xlab="Canopy Cover (%)", main="")
+
+#Boxplots
+ggplot(canopy, aes(x = holc_grade, y = Can_P, fill = holc_grade)) +
+geom_boxplot() +
+scale_fill_manual('HOLC Grade', values = holc_col, labels = holc_lab) +
+labs(title = "Canopy cover by HOLC grade",
+y = "Canopy Cover (%)", x = "HOLC grade") +
+theme_classic()
+
+ggplot(canopy, aes(x = city, y = Can_P)) +
+geom_boxplot() +
+labs(title = "Canopy cover by city",
+y = "Canopy Cover (%)", x = "City") +
+theme_classic()
+```
+
+Removing cities with less than 150 observations
+```{r, include = TRUE}
+library(tidyverse)
+## filter
+canopy_s <- canopy %>%
+group_by(city) %>%
+filter(n() >= 150) %>%
+ungroup()
+## new table
+table(canopy_s$city,canopy_s$holc_grade)
+```
+
+Now, let’s continue data exploration with the new simplified dataset. Try to create the
+figures below by modifying your code from above.
+```{r, include = TRUE}
+#Histogram
+hist(canopy_s$Can_P, breaks=seq(0,100,5), cex.axis=0.8,
+xlab="Canopy Cover (%)", main="")
+
+#Boxplots
+ggplot(canopy_s, aes(x = holc_grade, y = Can_P, fill = holc_grade)) +
+  geom_boxplot() +
+  facet_wrap(~city) +
+  ggtitle("Canopy Cover by HOLC grade (limited to cities with more than 150 observations)") +
+  theme_classic() + 
+  xlab("HOLC grade") + 
+  ylab("Canopy Cover (%)") +
+  guides(fill=guide_legend(title="HOLC grade"))
+```
+
+
+
+Looking at it by mean
+```{r, include = TRUE}
+## Mean canopy cover plot
+canopy_mean <- canopy_s %>% group_by(city, holc_grade) %>%
+summarise(Can_Pm = mean(Can_P))
+ggplot(canopy_mean, aes(x = city, y = Can_Pm, group = holc_grade,
+color = holc_grade)) +
+geom_line() +
+scale_color_manual('HOLC Grade', values = holc_col) +
+labs(title = "Canopy cover by city",
+y = "Canopy Cover (%)", x = "City") +
+theme_classic()
+```
+
+
+Quiz yourself: (1pt) What do you notice about the raw data? How well do you think
+our data will meet the assumptions of the linear model (we will again assume our data are
+independent and measured without error)?
+
+The raw data is 
